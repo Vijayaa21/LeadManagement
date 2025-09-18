@@ -1,14 +1,13 @@
 import Lead from "../models/lead.model.js";
 import User from "../models/user.model.js";
+import { buildLeadFilter } from "../lib/leadFilter.js";
 
-// Create Lead
 export const createLead = async (req, res) => {
   try {
-    const lead = new Lead({ ...req.body, user: req.user.id });
+    const lead = new Lead({ ...req.body, user: req.userId });
     await lead.save();
 
-    // Optionally link lead to the user
-    await User.findByIdAndUpdate(req.user.id, { $push: { leads: lead._id } });
+    await User.findByIdAndUpdate(req.userId, { $push: { leads: lead._id } });
 
     res.status(201).json(lead);
   } catch (err) {
@@ -16,27 +15,16 @@ export const createLead = async (req, res) => {
   }
 };
 
-// List Leads with pagination & filters
 export const listLeads = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, source, search } = req.query;
-    const query = { user: req.user.id };
+    const { page = 1, limit = 10 } = req.query;
 
-    if (status) query.status = status;
-    if (source) query.source = source;
-    if (search) {
-      query.$or = [
-        { first_name: new RegExp(search, "i") },
-        { last_name: new RegExp(search, "i") },
-        { email: new RegExp(search, "i") },
-        { company: new RegExp(search, "i") }
-      ];
-    }
+    const query = buildLeadFilter(req.query, req.userId);
 
     const leads = await Lead.find(query)
       .skip((page - 1) * limit)
-      .limit(parseInt(limit))
-      .sort({ createdAt: -1 });
+      .limit(Math.min(parseInt(limit), 100))
+      .sort({ created_at: -1 });
 
     const count = await Lead.countDocuments(query);
 
@@ -44,17 +32,17 @@ export const listLeads = async (req, res) => {
       total: count,
       page: parseInt(page),
       pages: Math.ceil(count / limit),
-      data: leads
+      data: leads,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Get single lead
+
 export const getLeadById = async (req, res) => {
   try {
-    const lead = await Lead.findOne({ _id: req.params.id, user: req.user.id });
+    const lead = await Lead.findOne({ _id: req.params.id, user: req.userId });
     if (!lead) return res.status(404).json({ message: "Lead not found" });
     res.status(200).json(lead);
   } catch (err) {
@@ -62,11 +50,11 @@ export const getLeadById = async (req, res) => {
   }
 };
 
-// Update lead
+
 export const updateLead = async (req, res) => {
   try {
     const lead = await Lead.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id },
+      { _id: req.params.id, user: req.userId },
       req.body,
       { new: true }
     );
@@ -77,13 +65,13 @@ export const updateLead = async (req, res) => {
   }
 };
 
-// Delete lead
+
 export const deleteLead = async (req, res) => {
   try {
-    const lead = await Lead.findOneAndDelete({ _id: req.params.id, user: req.user.id });
+    const lead = await Lead.findOneAndDelete({ _id: req.params.id, user: req.userId });
     if (!lead) return res.status(404).json({ message: "Lead not found" });
 
-    await User.findByIdAndUpdate(req.user.id, { $pull: { leads: lead._id } });
+    await User.findByIdAndUpdate(req.userId, { $pull: { leads: lead._id } });
 
     res.status(200).json({ message: "Lead deleted successfully" });
   } catch (err) {
