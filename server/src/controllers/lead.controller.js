@@ -17,14 +17,18 @@ export const createLead = async (req, res) => {
 
 export const listLeads = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query;
-
+    const { page = 1, limit = 10, sortField, sortOrder } = req.query;
     const query = buildLeadFilter(req.query, req.userId);
+
+    const sort = {};
+    if (sortField && sortOrder) {
+      sort[sortField] = sortOrder === "asc" ? 1 : -1;
+    }
 
     const leads = await Lead.find(query)
       .skip((page - 1) * limit)
-      .limit(Math.min(parseInt(limit), 100))
-      .sort({ created_at: -1 });
+      .limit(parseInt(limit))
+      .sort(sort);
 
     const count = await Lead.countDocuments(query);
 

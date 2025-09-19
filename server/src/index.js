@@ -4,8 +4,13 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.route.js';
 import leadRoutes from './routes/lead.route.js';
 import { connectDB } from './lib/db.js';
+import cors from 'cors';
 const app = express();
 dotenv.config();
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  credentials: true,
+}));
 app.use(express.json({}));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
