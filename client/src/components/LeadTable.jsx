@@ -1,11 +1,10 @@
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-import api from "../api/axios"; 
-
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AgGridReact } from "ag-grid-react";
+import api from "../api/axios";
 
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
@@ -21,30 +20,33 @@ export default function LeadTable() {
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/api/leads"); 
+      const res = await api.get("/api/leads", {
+        params: { page: 1, limit: 100 },
+        withCredentials: true,
+      });
       if (Array.isArray(res.data.data)) setRowData(res.data.data);
       else setRowData([]);
     } catch (err) {
-      console.error("fetchLeads error:", err.response?.data || err.message);
+      console.error("fetchLeads error:", err.response || err.message);
       setRowData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this lead?")) return;
     try {
-      await api.delete(`/leads/${id}`);
+      await api.delete(`/api/leads/${id}`, { withCredentials: true });
       fetchLeads();
     } catch (err) {
-      console.error("Delete error:", err.response?.data || err.message);
+      console.error("handleDelete error:", err.response || err.message);
     }
   };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
 
   const columnDefs = [
     { headerName: "First Name", field: "first_name", sortable: true, filter: true },
@@ -65,13 +67,13 @@ export default function LeadTable() {
         <div className="flex gap-2 justify-center">
           <button
             onClick={() => navigate(`/leads/${params.data._id}/edit`)}
-            className="text-white font-bold"
+            className="text-3xl font-bold text-white text-center mb-6"
           >
             Edit
           </button>
           <button
             onClick={() => handleDelete(params.data._id)}
-            className="text-white font-bold"
+            className="text-3xl font-bold text-white text-center mb-6"
           >
             Delete
           </button>
@@ -90,9 +92,7 @@ export default function LeadTable() {
 
     ["email", "company", "city"].forEach((field) => {
       if (filters[field]) {
-        matches =
-          matches &&
-          lead[field]?.toLowerCase().includes(filters[field].toLowerCase());
+        matches = matches && lead[field]?.toLowerCase().includes(filters[field].toLowerCase());
       }
     });
 
@@ -151,21 +151,83 @@ export default function LeadTable() {
           onChange={(e) => setSearchText(e.target.value)}
           className="px-3 py-2 rounded w-full md:w-1/3 text-black bg-cyan-100 placeholder-cyan-700"
         />
+
+        <div className="flex flex-wrap gap-3 w-full md:w-2/3">
+          {["email", "company", "city"].map((field) => (
+            <input
+              key={field}
+              type="text"
+              placeholder={field}
+              value={filters[field] || ""}
+              onChange={(e) => setFilters((prev) => ({ ...prev, [field]: e.target.value }))}
+              className="px-2 py-1 rounded text-black bg-teal-100 placeholder-teal-700"
+            />
+          ))}
+
+          {["status", "source"].map((field) => {
+            const options = [...new Set(rowData.map((lead) => lead[field]))];
+            return (
+              <select
+                key={field}
+                value={filters[field] || ""}
+                onChange={(e) => setFilters((prev) => ({ ...prev, [field]: e.target.value }))}
+                className="px-2 py-1 rounded text-black bg-cyan-100"
+              >
+                <option value="">All {field}</option>
+                {options.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            );
+          })}
+
+          {["score", "lead_value"].map((field) => (
+            <input
+              key={field}
+              type="text"
+              placeholder={field + " (e.g., 10-50)"}
+              value={filters[field] || ""}
+              onChange={(e) => setFilters((prev) => ({ ...prev, [field]: e.target.value }))}
+              className="px-2 py-1 rounded text-black bg-teal-100"
+            />
+          ))}
+
+          {["created_at", "last_activity_at"].map((field) => (
+            <input
+              key={field}
+              type="text"
+              placeholder={field + " (YYYY-MM-DD or YYYY-MM-DD - YYYY-MM-DD)"}
+              value={filters[field] || ""}
+              onChange={(e) => setFilters((prev) => ({ ...prev, [field]: e.target.value }))}
+              className="px-2 py-1 rounded text-black bg-cyan-100"
+            />
+          ))}
+
+          <select
+            value={filters.is_qualified || ""}
+            onChange={(e) => setFilters((prev) => ({ ...prev, is_qualified: e.target.value }))}
+            className="px-2 py-1 rounded text-black bg-teal-100"
+          >
+            <option value="">All Qualified</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
       </div>
 
+      
       {loading ? (
         <p className="text-white text-lg">Loading leads...</p>
       ) : (
-        <div
-          className="ag-theme-alpine-dark"
-          style={{ height: "70vh", width: "95vw", minWidth: "800px" }}
-        >
+        <div className="ag-theme-alpine-dark" style={{ height: "70vh", width: "95vw", minWidth: "800px" }}>
           <AgGridReact
             ref={gridRef}
             rowData={filteredRows}
             columnDefs={columnDefs}
+            pagination={true}
             paginationPageSize={10}
-            paginationPageSizeSelector={[10, 20, 50]}
             domLayout="autoHeight"
           />
         </div>
