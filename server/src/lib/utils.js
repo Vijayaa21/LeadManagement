@@ -7,7 +7,6 @@ const generateToken = (userId, res) => {
     { expiresIn: "30d" }
   );
 
-  // If you want to set it as a cookie:
   res.cookie("jwt", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

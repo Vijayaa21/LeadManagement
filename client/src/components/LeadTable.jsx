@@ -21,7 +21,6 @@ export default function LeadTable() {
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      // Use axios instance, which already has baseURL + credentials
       const res = await api.get("/api/leads"); 
       if (Array.isArray(res.data.data)) setRowData(res.data.data);
       else setRowData([]);
