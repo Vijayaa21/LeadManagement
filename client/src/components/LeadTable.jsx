@@ -19,8 +19,7 @@ export default function LeadTable() {
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        "https://leadmanagement-backend.onrender.com/api/leads?page=1&limit=100",
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/leads?page=1&limit=100`,
         { credentials: "include" }
       );
       const data = await res.json();
@@ -40,7 +39,7 @@ export default function LeadTable() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this lead?")) return;
     try {
-      const res = await fetch(`https://leadmanagement-backend.onrender.com/api/leads/${id}`, {
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/leads/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
