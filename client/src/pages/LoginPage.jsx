@@ -17,7 +17,6 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      // Axios automatically parses JSON
       const res = await api.post("/api/auth/login", formData);
 
       if (res.data.success) {

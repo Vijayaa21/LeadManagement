@@ -16,7 +16,7 @@ export default function LeadEdit() {
 
   const fetchLead = async () => {
     try {
-      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/leads/${id}`, {
+      const res = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/leads/${id}`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -24,8 +24,7 @@ export default function LeadEdit() {
     } catch (err) {
       console.error(err);
     }
-  };
-
+}
   useEffect(() => {
     fetchLead();
   }, [id]);
@@ -37,7 +36,7 @@ export default function LeadEdit() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/leads/${id}`, {
+      const res = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/leads/${id}`, {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
