@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios"; // Axios instance with baseURL from VITE_API_URL
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -16,33 +17,26 @@ export default function Signup() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const res = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-        credentials: "include",
-      });
+  try {
+    const res = await api.post("/api/auth/register", formData);
 
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Signup successful!");
-        navigate("/login");
-      } else {
-        alert(data.message || "Error signing up");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong");
+    if (res.data && res.data._id) {
+      alert("Signup successful!");
+      navigate("/login");
+    } else {
+      alert("Error signing up");
     }
-  };
+  } catch (err) {
+    console.error("Signup failed:", err.response?.data || err.message);
+    alert("Something went wrong");
+  }
+};
 
   return (
     <div
-       className="relative min-h-screen flex items-center justify-center"
+      className="relative min-h-screen flex items-center justify-center"
       style={{ background: "linear-gradient(135deg, #008080, #00ffff)" }}
     >
       <div className="bg-gray-800 p-10 rounded-2xl shadow-2xl w-full max-w-md text-center">

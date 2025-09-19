@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import api from "../api/axios"; // Axios instance with baseURL
 
 export default function LeadEdit() {
   const { id } = useParams();
@@ -14,17 +15,16 @@ export default function LeadEdit() {
     lead_value: "",
   });
 
+  // Fetch lead details
   const fetchLead = async () => {
     try {
-      const res = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/leads/${id}`, {
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (res.ok) setLead(data);
+      const res = await api.get(`/api/leads/${id}`);
+      if (res.data) setLead(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching lead:", err);
     }
-}
+  };
+
   useEffect(() => {
     fetchLead();
   }, [id]);
@@ -33,24 +33,21 @@ export default function LeadEdit() {
     setLead({ ...lead, [e.target.name]: e.target.value });
   };
 
+  // Update lead
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/leads/${id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(lead),
-      });
-      const data = await res.json();
-      if (res.ok) {
+      const res = await api.put(`/api/leads/${id}`, {lead});
+
+      if (res.status === 200) {
         alert("Lead updated successfully");
         navigate("/leads");
       } else {
-        alert(data.message || "Error updating lead");
+        alert(res.data?.message || "Error updating lead");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error updating lead:", err);
+      alert("Something went wrong while updating the lead");
     }
   };
 

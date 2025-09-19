@@ -1,7 +1,7 @@
 // src/pages/LoginPage.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axios"; // Axios instance with baseURL from VITE_API_URL
+import api from "../api/axios"; 
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -21,8 +21,7 @@ const LoginPage = () => {
 
       if (res.data.success) {
         alert("Login successful!");
-        navigate("/leads"); // Redirect to leads page
-      } else {
+        navigate("/leads"); 
         console.log("Login failed:", res.data);
         alert(res.data.message || "Error logging in");
       }

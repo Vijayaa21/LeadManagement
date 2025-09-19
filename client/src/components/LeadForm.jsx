@@ -29,7 +29,7 @@ export default function LeadForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post("/leads", formData);
+      await api.post("/api/leads", formData);
       alert("Lead created successfully!");
       setFormData({
         first_name: "",
