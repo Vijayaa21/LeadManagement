@@ -9,8 +9,7 @@ const app = express();
 dotenv.config();
 app.use(cors({
   origin: ['http://localhost:5173', 
-    'https://lead-management-pied.vercel.app',
-    'https://leadmanagement-i3e5.onrender.com'],
+    'https://lead-management-pied.vercel.app'],
   credentials: true,
 }));
 app.use(express.json({}));
