@@ -42,29 +42,50 @@ export const registerUser = async(req, res) =>{
     
   }
 }
-export const loginUser = async(req, res) => {
-  const { email, password } = req.body
-  try{
-    const user = await User.findOne({email})
-    if(!user){
-      return res.status(400).json({message:"Invalid Credentials"})
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
 
+  try {
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
     }
-    const isPassword = await bcrypt.compare(password, user.password)
-    if(!isPassword){
-      return res.status(400).json({message:"Invalid Credentials"})
+
+    // Compare password
+    const isPassword = await bcrypt.compare(password, user.password);
+    if (!isPassword) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
     }
+
+    // Generate JWT token and set cookie
     generateToken(user._id, res);
+
+    // Send structured JSON response
     res.status(200).json({
-      _id: user._id,
-      email: user.email,
-      fullName: user.fullName,
-      username: user.username
+      success: true,
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        username: user.username,
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  } 
-}
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
 export const logoutUser = async(req, res) =>{
     try{
       res.cookie("jwt", "", { maxAge: 0 });

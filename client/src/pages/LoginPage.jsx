@@ -1,8 +1,11 @@
+// src/pages/LoginPage.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios"; // Axios instance with baseURL from VITE_API_URL
 
-export default function Login() {
+const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -11,29 +14,25 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-      const res = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-          credentials: "include", 
-        }
-      );
+      // Axios automatically parses JSON
+      const res = await api.post("/api/auth/login", formData);
 
-      const data = await res.json();
-
-      if (res.ok) {
+      if (res.data.success) {
         alert("Login successful!");
-        navigate("/leads");
+        navigate("/leads"); // Redirect to leads page
       } else {
-        alert(data.message || "Error logging in");
+        console.log("Login failed:", res.data);
+        alert(res.data.message || "Error logging in");
       }
     } catch (err) {
-      console.error("Login error:", err);
-      alert("Something went wrong. Please try again.");
+      // Axios stores server response in err.response
+      console.error("Login error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,12 +73,15 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg text-md font-semibold transition-all duration-300"
+            disabled={loading}
+            className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg text-md font-semibold transition-all duration-300 disabled:opacity-50"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>
     </div>
   );
-}
+};
+
+export default LoginPage;
