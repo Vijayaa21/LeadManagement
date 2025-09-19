@@ -1,9 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import authRoutes from './src/routes/auth.route.js';
-import leadRoutes from './src/routes/lead.route.js';
-import { connectDB } from './src/lib/db.js';
+import authRoutes from './routes/auth.route.js';
+import leadRoutes from './routes/lead.route.js';
+import { connectDB } from './lib/db.js';
 import cors from 'cors';
 const app = express();
 dotenv.config();
